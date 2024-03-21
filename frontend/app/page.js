@@ -59,7 +59,7 @@ export default function Home() {
   }
 
   const getUserLands = async () => {
-    if(!contract) return;
+    if(!landContract) return;
     try {
       const userLands = await landContract.getUserLands(account);
       console.log(userLands)
