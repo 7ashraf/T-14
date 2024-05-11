@@ -24,7 +24,10 @@ module.exports = {
       url: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
       accounts: [SEPOLIA_PRIVATE_KEY]
     }
-  }
+  },
+  paths: {
+    artifacts: "../frontend/app/contracts/artifacts",
+  },
 };
 // /** @type import('hardhat/config').HardhatUserConfig */
 // module.exports = {
