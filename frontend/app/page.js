@@ -3,14 +3,16 @@ import Image from "next/image";
 import styles from "./page.module.css";
 import { useState, useEffect } from "react";
 const ethers = require("ethers");
-import { landAbi, landAddress, landMarketContractAbi, landMarketContractAddress, subDaoContractAbi, subDaoContractAddress } from './utils/constants.js';
+import { daoContractAbi, daoContractAddress, landAbi, landAddress, landMarketContractAbi, landMarketContractAddress, oracleContractAbi, oracleContractAddress, subDaoContractAbi, subDaoContractAddress, } from './utils/constants.js';
 import IpfsComponent from "@/components/ipfs";
-import { Button } from "@material-tailwind/react";
+//import { Button } from "@material-tailwind/react";
 import { Alert } from "flowbite-react";
 import { MyNavBar } from "@/components/NavBar";
 import { Card } from "flowbite-react";
 import { useWeb3 } from "./context/page";
 import Link from "next/link";
+import { Main } from "next/document";
+import { Button } from "flowbite-react";
 
 export default function Home() {
 
@@ -40,7 +42,7 @@ export default function Home() {
     subDaoContract,
     setSubDaoContract,
     oracleContract,
-    setOracleContract} = useWeb3();
+    setOracleContract, setDaoContract} = useWeb3();
 
     console.log(useWeb3())
 
@@ -72,6 +74,7 @@ export default function Home() {
 
   const getContract = async () => {
     if(!account) return;
+    if (landMarketContract) return;
     console.log("trying to get contract")
     try {
       const contract = new ethers.Contract(landAddress, landAbi, signer);
@@ -117,16 +120,25 @@ export default function Home() {
     if(!landMarketContract) return;
     try {
       //logic should be changed
-      for (let i = 0; i < 10; i++) {
-        const marketListing = await landMarketContract.landOffers(i);
-        if(marketListing.seller === ethers.constants.AddressZero) break;
-        console.log(marketListing)
-        setMarketListings([...marketListings, marketListing]);
-      }
-      const marketListings = await landMarketContract.getMarketListings();
-      console.log(marketListings)
-      setMarketListings(marketListings);
+      const landOffers = await landMarketContract.getAllLandOffers();
+      //const marketListings = await landMarketContract.getMarketListings();
+      //console.log(landOffers)
+      console.log(landOffers)
+      const formattedOffers = landOffers.map((offer) =>{
+        return {
+          tokenId: offer.tokenId,
+          seller: offer.seller,
+          price: offer.price,
+          //imagesIPFSHash: offer.imagesIPFSHash
+        }
+      
+      });
+      console.log("formatted data: ", formattedOffers)
+      //console.log(marketListings)
+      setMarketListings(formattedOffers);
+      setError("")
     } catch (error) {
+      console.log(error)
       setError('Error getting market listings');
     }
   
@@ -135,14 +147,56 @@ export default function Home() {
 
   const getSubDaoContract = async () => {
     if(!account) return;
+    if(subDaoContract) return;
     try {
       const contract = new ethers.Contract(subDaoContractAddress, subDaoContractAbi, signer);
       setSubDaoContract(contract);
+
     } catch (error) {
       setError('Error getting contract' + error.message);
     }
   
   
+  }
+
+  const getLandNftContract = async() =>{
+    if(!account) return;
+    if(landNftContract) return;
+    try {
+      const contract = new ethers.Contract(landAddress, landAbi, signer);
+      setLandNftContract(contract);
+    } catch (error) {
+      setError('Error getting contract' + error.message);
+    }
+  
+  }
+
+  const getOracleContract = async () => {
+    if (!account) return;
+    try {
+        const contract = new ethers.Contract(
+            oracleContractAddress,
+            oracleContractAbi,
+            signer
+        );
+        setOracleContract(contract);
+    } catch (error) {
+        setError("Error getting contract" + error.message);
+    }
+  }
+
+  const getDaoContract = async () => {
+    if (!account) return;
+    try {
+        const contract = new ethers.Contract(
+            daoContractAddress,
+            daoContractAbi,
+            signer
+        );
+        setDaoContract(contract);
+    } catch (error) {
+        setError("Error getting contract" + error.message);
+    }
   }
 
 
@@ -151,18 +205,21 @@ export default function Home() {
       await connectWallet();
       await getContract();
       await getSubDaoContract();
+      await getLandNftContract();
+      await getDaoContract();
+      await getOracleContract();
 
     }
      //connectWallet()
     //  getContract()
     //  getSubDaoContract()
     initWeb3()
-     getMarketListings()
-     require("bootstrap/dist/js/bootstrap.bundle.min.js");
+    getMarketListings()
+    require("bootstrap/dist/js/bootstrap.bundle.min.js");
 
   
  
-  }, [account])
+  }, [account, marketListings])
 
   const testTransaction = async () => {
     try {
@@ -189,18 +246,12 @@ export default function Home() {
       <MyNavBar></MyNavBar>
       <div className={styles.description}>
         
-        <h1>Hello World</h1>
         <IpfsComponent></IpfsComponent>
         <div>
-      <h1>Ethereum Wallet Login</h1>
       {account ? (
         <div>
           <p>Connected Account: {account}</p>
-          <button onClick={() => setAccount(null)}>Disconnect Wallet</button>
-          <button onClick={getUserLands}>Get User Lands</button>
-          <button onClick={mintLand}>Mint Land</button>
-
-
+          <Button color="blue" onClick={() => setAccount(null)}> Disconnect Wallet </Button>
         </div>
       ) : (
         <button onClick={connectWallet} type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Connect Wallet</button>
@@ -215,15 +266,23 @@ export default function Home() {
       {marketListings.length > 0 && marketListings.map((listing, index) => (
 
         <div>
-            <h2 key={index}>Market Listing: {listing}</h2>
+            <h2 key={index}></h2>
             <Card href="#" className="max-w-sm">
-            <h5 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-              Noteworthy technology acquisitions 2021
+            <h5 className="text-1xl font-bold tracking-tight text-gray-900 dark:text-white">
+              Land Seller: {listing.seller}
             </h5>
             <p className="font-normal text-gray-700 dark:text-gray-400">
-              Here are the biggest enterprise technology acquisitions of 2021 so far, in reverse chronological order.
+              Land Price{listing.price.toString()}
             </p>
+
+            <p className="font-normal text-gray-700 dark:text-gray-400">
+            Land NFT ID: {listing.tokenId.toString()}
+            </p>
+
+           
+            <Button color="dark" pill onClick={() => {}}>Buy Land</Button>
       </Card>
+      <br></br>
         </div>
         
       ))}
@@ -235,9 +294,6 @@ export default function Home() {
 
       </div>
       <script src="../path/to/flowbite/dist/flowbite.min.js"></script>
-      <Button color="black" onClick={testTransaction}>Create Proposal</Button>
-      <Link href="/MyProposals">My Proposals</Link>
-
     </main>
   );
 }

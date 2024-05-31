@@ -8,20 +8,22 @@ import { LandProposalForm } from '@/components/LandProposalForm'
 import IpfsComponent from '@/components/ipfs';
 import { subDaoContractAbi, subDaoContractAddress } from '../utils/constants';
 import { unixfs } from '@helia/unixfs'
+import { useWeb3 } from '../context/page';
 
 const ethers = require("ethers");
 
 
 function LandProposal() {
 
-    const [account, setAccount] = useState("");
-    const [signer, setSigner] = useState(null);
-    const [error, setError] = useState(null);
-    const [helia, setHelia] = useState(null)
-    const [subDaoContract, setSubDaoContract] = useState(null);
+   // const [account, setAccount] = useState("");
+    //const [signer, setSigner] = useState(null);
+    //const [error, setError] = useState(null);
+    //const [helia, setHelia] = useState(null)
+    //const [subDaoContract, setSubDaoContract] = useState(null);
     // const [contractIPFSHash, setContractIPFSHash] = useState("");
     // const [imageIPFSHash, setImageIPFSHash] = useState("");
     const [fs , setFs] = useState(null)
+    const {account,  signer, setError,  subDaoContract,  helia,} = useWeb3();
  
 
     const handleSubmit = async (e) => {
@@ -39,7 +41,10 @@ function LandProposal() {
     
     //const tx =  await createLandProposal(location, price, contractIPFSHash, imageIPFSHash);
     console.log(contractIPFSHash, imageIPFSHash)
-    await createLandProposal(location, price, contractIPFSHash, imageIPFSHash);
+
+    //await createLandProposal(location, price, contractIPFSHash, imageIPFSHash);
+
+    await testTransaction();
 
     }
 
@@ -80,9 +85,15 @@ function LandProposal() {
 
         try {
             console.log("dao is creating proposal")
-            subDaoContract.connect(signer);
+            //subDaoContract.connect(signer);
+            //console.log(subDaoContract)
+            console.log(account)
+            const accounts = await ethereum.request({
+                method: 'eth_requestAccounts',
+              });
+              console.log("accountss", accounts)
             console.log(subDaoContract)
-            const tx = await subDaoContract.createLandListingProposal(location, price, "contractIPFSHash", "imagesIPFSHash");
+            const tx = await subDaoContract.createLandListingProposal("location", 200, "contractIPFSHash", "imagesIPFSHash");
             console.log(tx)
             await tx.wait();
             console.log("Proposal created");
@@ -109,68 +120,87 @@ function LandProposal() {
         }
     }
 
+    const testTransaction = async () => {
+        try {
+            console.log("dao is creating proposal test")
+            console.log(subDaoContract)
+            console.log(signer)
+            //await subDaoContract.connect(signer);
+            const tx = await subDaoContract.createLandListingProposal("Cairo", 150000,"bafkreig5tsukx57ubiyhs7nntxulgtx5bgz5z5bapqd2t5uap3my2ba3xe " ,"bafkreig5tsukx57ubiyhs7nntxulgtx5bgz5z5bapqd2t5uap3my2ba3xe" );
+            console.log(tx)
+            await tx.wait();
+            console.log("Proposal created");
+        } catch (error) {
+            setError("Error creating proposal" + error.message);
+            console.log(error)
+        }
+    }
+
+
 
 
     useEffect(() => {
         //should use a context for account and provider, signer
-        const getAccount = async () => {
-            if (window.ethereum) {
-                try {
-                    const accounts = await window.ethereum.request({
-                        method: "eth_requestAccounts",
-                    });
-                    setAccount(accounts[0]);
-                    const provider = new ethers.BrowserProvider(window.ethereum);
-                    await provider.send("eth_requestAccounts", []);
+        // const getAccount = async () => {
+        //     if (window.ethereum) {
+        //         try {
+        //             const accounts = await window.ethereum.request({
+        //                 method: "eth_requestAccounts",
+        //             });
+        //             setAccount(accounts[0]);
+        //             const provider = new ethers.BrowserProvider(window.ethereum);
+        //             await provider.send("eth_requestAccounts", []);
             
             
-                    const signer = await provider.getSigner();
-                    console.log(signer)
-                    setSigner(signer);
-                } catch (error) {
-                    console.error(error);
-                }
-            }
-        };
+        //             const signer = await provider.getSigner();
+        //             console.log(signer)
+        //             setSigner(signer);
+        //         } catch (error) {
+        //             console.error(error);
+        //         }
+        //     }
+        // };
+        const fs = unixfs(helia);
+        setFs(fs)
 
-        const init = async () => {
-            if (helia) return
+        // const init = async () => {
+        //     if (helia) return
       
-            const heliaNode = await createHelia()
+        //     const heliaNode = await createHelia()
 
-            const fs = unixfs(heliaNode);
-            setFs(fs)
+        //     const fs = unixfs(heliaNode);
+        //     setFs(fs)
       
-            const nodeId = heliaNode.libp2p.peerId.toString()
-            const nodeIsOnline = heliaNode.libp2p.status === 'started'
+        //     const nodeId = heliaNode.libp2p.peerId.toString()
+        //     const nodeIsOnline = heliaNode.libp2p.status === 'started'
       
-            setHelia(heliaNode)
-            //setId(nodeId)
-           // setIsOnline(nodeIsOnline)
-          }
+        //     setHelia(heliaNode)
+        //     //setId(nodeId)
+        //    // setIsOnline(nodeIsOnline)
+        //   }
       
-          init()
+         // init()
 
-          const getSubDaoContract = async () => {
-            if(!account) return;
-            if(!signer) return;
-            try {
-                console.log("getting sub dao contract")
-                const contract = new ethers.Contract(subDaoContractAddress, subDaoContractAbi, signer);
-                console.log(contract)
-                setSubDaoContract(contract);
-            } catch (error) {
-              setError('Error getting contract' + error.message);
-            }
+        //   const getSubDaoContract = async () => {
+        //     if(!account) return;
+        //     if(!signer) return;
+        //     try {
+        //         console.log("getting sub dao contract")
+        //         const contract = new ethers.Contract(subDaoContractAddress, subDaoContractAbi, signer);
+        //         console.log(contract)
+        //         setSubDaoContract(contract);
+        //     } catch (error) {
+        //       setError('Error getting contract' + error.message);
+        //     }
           
           
-          }
+        //   }
 
         
 
-        getAccount();
+       // getAccount();
         //getDaoContract();
-        getSubDaoContract();
+       // getSubDaoContract();
         console.log(helia)
     }, [account, helia, signer]);
 

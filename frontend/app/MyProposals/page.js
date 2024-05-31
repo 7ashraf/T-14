@@ -7,6 +7,7 @@ import { MyNavBar } from '@/components/NavBar';
 import LandProposal from '../LandProposal/page.js';
 import { Button } from '@material-tailwind/react';
 import { useWeb3 } from '../context/page.js';
+import { Card } from 'flowbite-react';
 
 function page() {
 
@@ -15,9 +16,9 @@ function page() {
     const [error, setError] = useState(null);
     const [landContract, setLandContract] = useState(null);
     const[signer, setSigner] = useState(null);
-    const [daoContract, setDaoContract] = useState(null);
+    //const [daoContract, setDaoContract] = useState(null);
     const [userProposals, setUserProposals] = useState([]);
-    const {account, setAccount} = useWeb3();
+    const {account, setAccount, daoContract, subDaoContract} = useWeb3();
     console.log("ctx works", useWeb3())
     const testTransaction = async () => {
         try {
@@ -38,44 +39,46 @@ function page() {
 
     useEffect(() => {
         //should use a context for account and provider, signer
-        const getAccount = async () => {
-            if (window.ethereum) {
-                try {
-                    const accounts = await window.ethereum.request({
-                        method: "eth_requestAccounts",
-                    });
-                    setAccount(accounts[0]);
-                    const provider = new ethers.BrowserProvider(window.ethereum);
-                    await provider.send("eth_requestAccounts", []);
+        //commented due to context
+        // const getAccount = async () => {
+        //     if (window.ethereum) {
+        //         try {
+        //             const accounts = await window.ethereum.request({
+        //                 method: "eth_requestAccounts",
+        //             });
+        //             setAccount(accounts[0]);
+        //             const provider = new ethers.BrowserProvider(window.ethereum);
+        //             await provider.send("eth_requestAccounts", []);
             
-                    setProvider(provider);
+        //             setProvider(provider);
             
-                    const signer = await provider.getSigner();
-                    setSigner(signer);
-                    console.log(account)  
-                } catch (error) {
-                    console.error(error);
-                }
-            }
-        };
+        //             const signer = await provider.getSigner();
+        //             setSigner(signer);
+        //             console.log(account)  
+        //         } catch (error) {
+        //             console.error(error);
+        //         }
+        //     }
+        // };
 
-        const getDaoContract = async () => {
-            if (!account) return;
-            try {
-                const Myprovider = new ethers.BrowserProvider(window.ethereum);
-                await Myprovider.send("eth_requestAccounts", []);
+        // work in ctx
+        // const getDaoContract = async () => {
+        //     if (!account) return;
+        //     try {
+        //         const Myprovider = new ethers.BrowserProvider(window.ethereum);
+        //         await Myprovider.send("eth_requestAccounts", []);
 
-                console.log("getting dao contract")
-                const contract = new ethers.Contract(
-                    subDaoContractAddress,
-                    subDaoContractAbi,
-                    signer
-                );
-                setDaoContract(contract);
-            } catch (error) {
-                setError("Error getting dao contract: " + error.message);
-            }
-        };
+        //         console.log("getting dao contract")
+        //         const contract = new ethers.Contract(
+        //             subDaoContractAddress,
+        //             subDaoContractAbi,
+        //             signer
+        //         );
+        //         setDaoContract(contract);
+        //     } catch (error) {
+        //         setError("Error getting dao contract: " + error.message);
+        //     }
+        // };
 
         const getUserProposals = async () => {
             console.log("attempting to get user proposals")
@@ -83,12 +86,22 @@ function page() {
             console.log("getting user proposals")
             try {
                 //const proposalIds = await daoContract.getUserProposals();
-                for (let i = 0; i < 10; i++) {
-                    const proposal = await daoContract.landListingProposals(i);
-                    if (proposal.owner === account)
-                        setUserProposals([...userProposals, proposal]);
-                }
-                console.log(userProposals);
+                const userProposals = await subDaoContract.getUserLandListingProposals(account);
+                console.log("found")
+                console.log("user proposals: ", userProposals);
+           
+                const formattedData = userProposals.map(proposal => ({
+                    
+                        price: proposal.price.toString(),
+                        location: proposal.location,
+                        contractIPFSHash: proposal.contractIPFSHash,
+                        imagesIPFSHash: proposal.imagesIPFSHash,
+                    
+                }));
+                console.log(userProposals[0].location)
+                console.log(formattedData)
+                setUserProposals(formattedData);
+                console.log("user proposals formatted: ", userProposals);
             } catch (error) {
                 setError("Error fetching proposals: " + error.message);
             }
@@ -99,7 +112,7 @@ function page() {
 
     
         //getAccount();
-        getDaoContract();
+        //getDaoContract();
         getUserProposals();
       }, [account ]);
 
@@ -110,22 +123,41 @@ function page() {
   return (
     <div>
         <MyNavBar />
-        <h1>My Proposals</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">My Proposals</h1>
         <div>
             {userProposals.map((proposal, index) => {
                 return (
                     <div key={index}>
-                        <h2>{proposal.location}</h2>
-                        <p>{proposal.price}</p>
+                        
+                        
+                        <Card  className="max-w-sm">
+          <h5 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+            {proposal.location}
+          </h5>
+          <p className="font-normal text-gray-700 dark:text-gray-400">
+            {proposal.price.toString()}
+          </p>
+          <h2>{proposal.contractIPFSHash}</h2>
+                        <h2>{proposal.imagesIPFSHash}</h2>
+  
+          
+
+        </Card>
+                        <br />
                     </div>
                 );
             })}
+        </div>
+
+        <div>
+
+        <br></br>
+
         </div>
         <div>
             { <LandProposal /> }
 
         </div>
-        <Button color="black" onClick={testTransaction}>Create Proposal</Button>
 
     </div>
   )

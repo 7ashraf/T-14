@@ -5,17 +5,17 @@ import SubDAOContract from '../contracts/artifacts/contracts/Dao.sol/SubDAOContr
 import LandMarket from '../contracts/artifacts/contracts/LandMarket.sol/LandMarketPlace.json'
 
 export const landAbi = Land.abi;
-export const landAddress = '0x720472c8ce72c2A2D711333e064ABD3E6BbEAdd3'
+export const landAddress = '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9'
 
 export const oracleContractAbi = Oracle.abi;
-export const oracleContractAddress = '0xAA292E8611aDF267e563f334Ee42320aC96D0463'
+export const oracleContractAddress = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512'
 
 export const daoContractAbi = DAO.abi;
-export const daoContractAddress = '0x5c74c94173F05dA1720953407cbb920F3DF9f887'
+export const daoContractAddress = '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0'
 
 export const subDaoContractAbi = SubDAOContract.abi;
-export const subDaoContractAddress = '0x5067457698Fd6Fa1C6964e416b3f42713513B3dD'
+export const subDaoContractAddress = '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707'
 
 export const landMarketContractAbi = LandMarket.abi;
-export const landMarketContractAddress = '0xe8D2A1E88c91DCd5433208d4152Cc4F399a7e91d'
+export const landMarketContractAddress = '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9'
 

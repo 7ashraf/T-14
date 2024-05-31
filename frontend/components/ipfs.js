@@ -1,10 +1,13 @@
+import { useWeb3 } from '@/app/context/page'
 import { createHelia } from 'helia'
 import { React, useState, useEffect } from 'react'
 
 const IpfsComponent = () => {
   const [id, setId] = useState(null)
-  const [helia, setHelia] = useState(null)
+  //const [helia, setHelia] = useState(null)
   const [isOnline, setIsOnline] = useState(false)
+  const{helia, setHelia}= useWeb3();
+
 
   useEffect(() => {
     const init = async () => {

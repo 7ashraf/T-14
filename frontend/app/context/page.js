@@ -12,7 +12,9 @@ const Web3Context = createContext({
     landNftContract: null,
     landMarketContract: null,
     subDaoContract: null,
-    oracleContract: null
+    oracleContract: null,
+    helia: null,
+    daoContract: null
 
 });
 
@@ -26,6 +28,12 @@ export function Web3Provider({ children }) {
     const [landMarketContract, setLandMarketContract] = useState(null);
     const [subDaoContract, setSubDaoContract] = useState(null);
     const [oracleContract, setOracleContract] = useState(null);
+    const [daoContract, setDaoContract] = useState(null);
+    const [helia, setHelia] = useState(null);
+   
+   
+   
+   
     const [state, setState] = useState({
         account: null,
         signer: null,
@@ -54,7 +62,11 @@ export function Web3Provider({ children }) {
         subDaoContract,
         setSubDaoContract,
         oracleContract,
-        setOracleContract
+        setOracleContract,
+        helia,
+        setHelia,
+        daoContract,
+        setDaoContract,
     }}>
       {children}
     </Web3Context.Provider>

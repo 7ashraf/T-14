@@ -10,7 +10,7 @@ import "./Lib.sol";
 // Main DAO contract
 contract MainDAO is Ownable {
 
-    LandMarketplace public LandMarket;
+    LandMarketplace public landMarket;
     struct SubDAO {
         address subDAOAddress;
         string name;
@@ -83,7 +83,7 @@ contract SubDAOContract  {
     string public name;
     string public location;
 
-    LandMarketplace public LandMarket;
+    LandMarketplace public landMarket;
 
 
     // struct LandListingProposal{
@@ -104,6 +104,7 @@ contract SubDAOContract  {
     uint public proposalId;
 
     mapping(uint256 => Lib.LandListingProposal) public landListingProposals;
+    mapping(address => Lib.LandListingProposal[]) public userLandListingProposals;
 
     //store status inside proposal struct
     mapping (uint256 => ProposalStatus) public proposalStatus;
@@ -124,7 +125,7 @@ contract SubDAOContract  {
     }
 
     function setLandMarketAddress(address _landMarketAddress) external {
-        LandMarket = LandMarketplace(_landMarketAddress);
+        landMarket = LandMarketplace(_landMarketAddress);
     }
 
     function joinDaoRequest(bytes calldata proofOfLocation, bytes calldata proofOfIdentity) external {
@@ -148,6 +149,9 @@ contract SubDAOContract  {
         proposalStatus[proposalId] = ProposalStatus.Pending;
         proposalId++;
 
+        // Add the proposal to the user's list of proposals
+        userLandListingProposals[msg.sender].push(proposal);
+
         // Emit an event
         emit LandListingProposalCreated(proposalId, location, price);
 
@@ -169,8 +173,15 @@ contract SubDAOContract  {
         // to be called by the oracle
         proposalStatus[_proposalId] = ProposalStatus.Accepted;
         // call land market and add listing + notify user
-        LandMarket.addListing(landListingProposals[_proposalId]);
+        if (landMarket == LandMarketplace(address(0))) {
+            revert("LandMarket address not set");
+        }
+        landMarket.addListing(landListingProposals[_proposalId]);
         // Emit an event
         emit LandListingProposalVerified(_proposalId);
+    }
+
+    function getUserLandListingProposals(address _user) external view returns(Lib.LandListingProposal[] memory) {
+        return userLandListingProposals[_user];
     }
 }

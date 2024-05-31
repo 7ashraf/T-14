@@ -8,6 +8,7 @@ contract LandMarketplace is Ownable {
     Land public landNFTContract;
 
     struct LandOffer {
+        uint256 tokenId;
         address seller;
         uint256 price;
         bool isActive;
@@ -19,6 +20,7 @@ contract LandMarketplace is Ownable {
         bytes proofOfLocation;
         bytes contractIPFSHash;
         bytes imagesIPFSHash;
+        uint256 tokenId;
     }
 
     address public daoAddress = address(0);
@@ -29,6 +31,7 @@ contract LandMarketplace is Ownable {
     }
     //TODO should be called market listing
     mapping(uint256 => LandOffer) public landOffers;
+    LandOffer[] public landOffersArray;
     //TODO add list of land listings or ids
 
     event LandOffered(uint256 indexed tokenId, address indexed seller, uint256 price);
@@ -42,7 +45,7 @@ contract LandMarketplace is Ownable {
     function offerLand(uint256 tokenId, uint256 price) external onlyDao {
         //require(landNFTContract.ownerOf(tokenId) == msg.sender, "You do not own this land"); //should be called by dao only
         // mint land and offer on market place
-        landOffers[tokenId] = LandOffer(msg.sender, price, true);
+        landOffers[tokenId] = LandOffer(tokenId, msg.sender, price, true);
         landNFTContract.approve(address(this), tokenId);
         emit LandOffered(tokenId, msg.sender, price);
     }
@@ -67,10 +70,37 @@ contract LandMarketplace is Ownable {
     function addListing(Lib.LandListingProposal memory _proposal) external {
 
         //mint land and offer on market place
-        uint tokenId = landNFTContract.mintLand(_proposal.owner, _proposal);
+        if(landNFTContract == Land(address(0))) {
+            revert("Land NFT contract not set");
+        }
+        uint256 tokenId = landNFTContract.mintLand(_proposal.owner, _proposal);
 
-        landOffers[tokenId] = LandOffer(_proposal.owner, _proposal.price, true);
+        landOffers[tokenId] = LandOffer(tokenId, _proposal.owner, _proposal.price, true);
+        landOffersArray.push(landOffers[tokenId]);
+        
         landNFTContract.approve(address(this), tokenId);
+        
         emit LandOffered(tokenId, msg.sender, _proposal.price);
     }
+
+    function setLandNFTContract(address _landNFTContract) external onlyOwner {
+        landNFTContract = Land(_landNFTContract);
+    }
+
+    // function getLandData(uint256 tokenId) external view returns (LandData memory) {
+    //     LandData memory landData;
+    //     Lib.LandListingProposal memory proposal = landNFTContract.getMetadata(tokenId);
+    //     landData.location = proposal.location;
+    //     landData.price = proposal.price;
+    //     landData.proofOfLocation = proposal.proofOfLocation;
+    //     landData.contractIPFSHash = proposal.contractIPFSHash;
+    //     landData.imagesIPFSHash = proposal.imagesIPFSHash;
+    //     landData.tokenId = tokenId;
+    //     return landData;
+    // }
+
+    function getAllLandOffers() external view returns (LandOffer[] memory) {
+        return landOffersArray;
+    }
+
 }

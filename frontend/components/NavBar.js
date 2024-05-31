@@ -8,10 +8,11 @@ export function MyNavBar() {
   return (
     <Navbar fluid rounded>
       <Navbar.Brand as={Link} href="/">
-        <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">The ultimate land and real estate marketplace</span>
+        <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">Land and real estate marketplace</span>
       </Navbar.Brand>
       <Navbar.Toggle />
       <Navbar.Collapse>
+      
         <Link href="/">
           Home
         </Link>
@@ -20,7 +21,7 @@ export function MyNavBar() {
         </Link>
         
         <Link href="/MyProposals">My Proposals</Link>
-        <Link href="oracle">Oracle</Link>
+        <Link href="/Oracle">Oracle</Link>
 
       </Navbar.Collapse>
     </Navbar>

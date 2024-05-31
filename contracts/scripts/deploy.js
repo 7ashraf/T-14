@@ -17,7 +17,7 @@ async function main() {
 
   // Deploy Dao contract
   const Dao = await ethers.getContractFactory("MainDAO");
-  const dao = await Dao.deploy(oracle.getAddress());
+  const dao = await Dao.deploy( oracle.getAddress());
   await dao.waitForDeployment();
 
   console.log("Dao deployed to:",await  dao.getAddress());
@@ -31,7 +31,7 @@ async function main() {
 
   // Deploy LandMarket contract
   const LandMarket = await ethers.getContractFactory("LandMarketplace");
-  const landMarket = await LandMarket.deploy(land.getAddress());
+  const landMarket = await LandMarket.deploy(await land.getAddress());
   await landMarket.waitForDeployment();
 
   console.log("LandMarket deployed to:",await  landMarket.getAddress());
@@ -44,14 +44,20 @@ async function main() {
   console.log("SubDao deployed to:",await  subDao.getAddress());
 
   // Set contract addresses in each other contracts
-  await oracle.setNFTContractAddress(land.getAddress());
-  await oracle.setDAOContractAddress(subDao.getAddress());
+  await oracle.setNFTContractAddress(await land.getAddress());
+  //await oracle.setDAOContractAddress(subDao.getAddress());
+  //await oracle.setSubDAOContractAddress(await subDao.getAddress())
+  const subDaoContractAddress = await subDao.getAddress();
+  await oracle.setSubDAOContractAddress(subDaoContractAddress)
 
-  await dao.setOracleAddress(oracle.getAddress());
+
+  await dao.setOracleAddress(await oracle.getAddress());
   //await dao.setLandMarketAddress(landMarket.getAddress());
 
-  await subDao.setLandMarketAddress(landMarket.getAddress());
-  await subDao.setOracleAddress(oracle.getAddress());
+  await subDao.setLandMarketAddress(await landMarket.getAddress());
+  await subDao.setOracleAddress(await oracle.getAddress());
+
+  await landMarket.setLandNFTContract(await land.getAddress());
 
   // await dao.setLandAddress(land.address);
   // await dao.setLandMarketAddress(landMarket.address);
@@ -59,6 +65,7 @@ async function main() {
   // await land.setDaoAddress(dao.address);
   // await landMarket.setDaoAddress(dao.address);
   console.log("Contract addresses set successfully!");
+
 }
 
 main()
