@@ -1,6 +1,6 @@
 import Land from '../contracts/artifacts/contracts/Land.sol/Land.json'
 import Oracle from '../contracts/artifacts/contracts/Oracle.sol/Oracle.json'
-import DAO from '../contracts/artifacts/contracts/DAO.sol/MainDao.json'
+import DAO from '../contracts/artifacts/contracts/Dao.sol/MainDao.json'
 import SubDAOContract from '../contracts/artifacts/contracts/Dao.sol/SubDAOContract.json'
 import LandMarket from '../contracts/artifacts/contracts/LandMarket.sol/LandMarketPlace.json'
 
